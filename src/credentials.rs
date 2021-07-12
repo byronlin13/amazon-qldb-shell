@@ -1,77 +1,46 @@
-use std::io;
-use std::sync::mpsc::sync_channel;
-use std::sync::mpsc::Receiver as SyncReceiver;
-use std::sync::{Arc, Mutex};
-use std::thread;
-use std::thread::JoinHandle;
+use std::pin::Pin;
 
-use anyhow::Result;
-use aws_auth::provider::{CredentialsError, ProvideCredentials};
-use aws_auth::Credentials;
-use rusoto_core::credential::ProvideAwsCredentials as RusotoProvider;
-use tokio::runtime::Builder;
-use tokio::sync::mpsc::{channel, Sender};
+//use aws_auth::provider::AsyncProvideCredentials;
+use aws_auth::provider::{CredentialsError, CredentialsResult};
+use aws_sdk_qldbsession::Credentials;
+use futures::Future;
+use rusoto_core::credential::ProvideAwsCredentials;
 
-pub(crate) struct RusotoCredentialProvider {
-    bridge: AsyncBridge,
+pub(crate) fn from_rusoto<P: ProvideAwsCredentials>(rusoto: P) -> RusotoProvider<P> {
+    RusotoProvider(rusoto)
 }
 
-struct AsyncBridge {
-    tx: Sender<()>,
-    rx: Arc<Mutex<SyncReceiver<Result<Credentials, CredentialsError>>>>,
-    _handle: JoinHandle<io::Result<()>>, // stored for cancellation purposes
+type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
+
+/// An asynchronous credentials provider
+///
+/// If your use-case is synchronous, you should implement [ProvideCredentials] instead.
+pub trait AsyncProvideCredentials: Send + Sync {
+    fn provide_credentials<'a>(&'a self) -> BoxFuture<'a, CredentialsResult>;
 }
 
-pub(crate) async fn from_rusoto<P>(rusoto: P) -> Result<RusotoCredentialProvider>
+pub(crate) struct RusotoProvider<P: ProvideAwsCredentials>(P);
+impl<P> AsyncProvideCredentials for RusotoProvider<P>
 where
-    P: RusotoProvider + Send + Sync + 'static,
+    P: ProvideAwsCredentials + Send + Sync,
 {
-    let (wake, mut req) = channel(1);
-    let (res, credentials) = sync_channel(1);
-
-    let handle = thread::spawn(|| {
-        let rt = Builder::new_current_thread().build()?;
-        rt.block_on(async move {
-            loop {
-                if let None = req.recv().await {
-                    break;
-                }
-                let credentials = match rusoto.credentials().await {
-                    Ok(credentials) => Ok(Credentials::from_keys(
-                        credentials.aws_access_key_id(),
-                        credentials.aws_secret_access_key(),
-                        credentials.token().to_owned(),
-                    )),
-                    Err(err) => Err(CredentialsError::Unhandled(Box::new(err))),
-                };
-                if let Err(_) = res.send(credentials) {
-                    break;
-                }
-            }
-        });
-
-        Ok(())
-    });
-
-    let bridge = AsyncBridge {
-        tx: wake,
-        rx: Arc::new(Mutex::new(credentials)),
-        _handle: handle,
-    };
-
-    Ok(RusotoCredentialProvider { bridge })
+    fn provide_credentials(&self) -> BoxFuture<CredentialsResult> {
+        Box::pin(async { map(self.0.credentials().await) })
+    }
 }
 
-impl ProvideCredentials for RusotoCredentialProvider {
-    fn provide_credentials(&self) -> Result<Credentials, CredentialsError> {
-        self.bridge
-            .tx
-            .try_send(())
-            .expect("the credentials task should never crash");
-        // This doesn't work because (I think) the spawned future never wakes
-        // up.
-        let res = self.bridge.rx.lock().expect("mutex is never poisoned");
-        res.recv()
-            .expect("credentials (or an error) should always come back")
+fn map(
+    rusoto: Result<
+        rusoto_core::credential::AwsCredentials,
+        rusoto_core::credential::CredentialsError,
+    >,
+) -> CredentialsResult {
+    match rusoto {
+        Ok(credentials) => Ok(Credentials::from_keys(
+            credentials.aws_access_key_id(),
+            credentials.aws_secret_access_key(),
+            credentials.token().to_owned(),
+        )),
+        Err(err) => Err(CredentialsError::Unhandled(Box::new(err))),
     }
 }
