@@ -66,7 +66,7 @@ jobs:
           aws-region: us-west-2
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
-          role-duration-seconds: 900
+          role-duration-seconds: 1200
     
       - name: Env Variable Setup
         if: matrix.os == 'windows-latest'
