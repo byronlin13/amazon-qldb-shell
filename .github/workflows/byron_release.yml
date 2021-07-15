@@ -26,12 +26,7 @@ jobs:
       - name: Byron
         shell: powershell
         if: matrix.os == 'windows-latest'
-        run: |        
-          $name='qldb'
-          $tag=git describe --tags --abbrev=0
-          $release_name="$name-$tag"
-          
-          
+        run: |                  
           # Push unsigned MSI to S3
           $put_object_response=( aws s3api put-object --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --body qldbShellInGitHub.msi --acl bucket-owner-full-control ) | ConvertFrom-Json 
           
