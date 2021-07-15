@@ -59,6 +59,15 @@ jobs:
 #             bin: qldb
     runs-on: ${{ matrix.os }}
     steps:
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
+          role-duration-seconds: 900
+    
       - name: Env Variable Setup
         if: matrix.os == 'windows-latest'
         run: |
