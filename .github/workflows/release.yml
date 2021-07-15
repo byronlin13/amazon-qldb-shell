@@ -139,8 +139,8 @@ jobs:
           echo "version_id"
           echo $version_id
           
-          # Wait 10 seconds for job ID tag to be populated in S3 object
-          Start-Sleep -s 10
+          # Wait 5 seconds for job ID tag to be populated in S3 object
+          Start-Sleep -s 5
           
           # Get job ID
           $get_object_tagging_response=( aws s3api get-object-tagging --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --version-id $version_id ) | ConvertFrom-Json
