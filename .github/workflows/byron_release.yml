@@ -1,20 +1,10 @@
 name: Byron CI Release
 
-# on:
-#   push:
-#     branches:
-#       - rust
-#     tags:
-#       - "v*.*.*"
-#   pull_request:
-
 on: workflow_dispatch
-
 
 jobs:
   release:
     name: Release
-    if: startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
         include:
