@@ -127,9 +127,10 @@ jobs:
           
           cd target/wix
           mv amazon_qldb_shell*.msi ../../$release_name.msi
+          cd ../../
           
           # Push unsigned MSI to S3
-          $put_object_response=( aws s3api put-object --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --body ../../$release_name.msi --acl bucket-owner-full-control ) | ConvertFrom-Json 
+          $put_object_response=( aws s3api put-object --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --body $release_name.msi --acl bucket-owner-full-control ) | ConvertFrom-Json 
           
           echo "put object response"
           echo $put_object_response
@@ -157,7 +158,7 @@ jobs:
           aws s3api wait object-exists --bucket ${{ secrets.AWS_SIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }}-$job_id
           
           # Get signed MSI from S3
-          aws s3api get-object --bucket ${{ secrets.AWS_SIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }}-$job_id ../../$release_name.msi
+          aws s3api get-object --bucket ${{ secrets.AWS_SIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }}-$job_id $release_name.msi
         
       - name: Publish
         uses: softprops/action-gh-release@v1
