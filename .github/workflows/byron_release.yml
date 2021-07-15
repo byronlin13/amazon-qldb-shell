@@ -10,7 +10,6 @@ jobs:
         include:
           - os: windows-latest
             variant: windows
-            bin: qldb.exe
     runs-on: ${{ matrix.os }}
     steps:
       - uses: aws-actions/configure-aws-credentials@v1
