@@ -30,7 +30,7 @@ jobs:
           $file_name = "qldbShellInGitHub"
          
           # Push unsigned MSI to S3
-          $put_object_response=( aws s3api put-object --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --body $file_name --acl bucket-owner-full-control ) | ConvertFrom-Json 
+          $put_object_response=( aws s3api put-object --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --body $file_name.msi --acl bucket-owner-full-control ) | ConvertFrom-Json 
           
           echo "put object response"
           echo $put_object_response
