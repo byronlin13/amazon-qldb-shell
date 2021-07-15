@@ -1,0 +1,56 @@
+name: Byron CI Release
+
+# on:
+#   push:
+#     branches:
+#       - rust
+#     tags:
+#       - "v*.*.*"
+#   pull_request:
+
+on: workflow_dispatch
+
+
+jobs:
+  release:
+    name: Release
+    if: startsWith(github.ref, 'refs/tags/')
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            variant: windows
+            bin: qldb.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
+          role-duration-seconds: 1200
+    
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Byron
+        shell: powershell
+        if: matrix.os == 'windows-latest'
+        run: |        
+          $name='qldb'
+          $tag=git describe --tags --abbrev=0
+          $release_name="$name-$tag"
+          
+          
+          # Push unsigned MSI to S3
+          $put_object_response=( aws s3api put-object --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --body qldbShellInGitHub.msi --acl bucket-owner-full-control ) | ConvertFrom-Json 
+          
+          echo "put object response"
+          echo $put_object_response
+          
+          $version_id = $put_object_response.VersionId
+          
+          echo "version_id"
+          echo $version_id
+          
