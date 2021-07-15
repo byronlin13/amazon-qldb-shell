@@ -66,7 +66,7 @@ jobs:
           aws-region: us-west-2
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
-          role-duration-seconds: 1200
+          role-duration-seconds: 1800
     
       - name: Env Variable Setup
         if: matrix.os == 'windows-latest'
@@ -137,9 +137,10 @@ jobs:
           cd target/wix
           mv amazon_qldb_shell*.msi ../../$release_name.msi
           cd ../../
+          $complete_file_name = $release_name + ".msi"
           
           # Push unsigned MSI to S3
-          $put_object_response=( aws s3api put-object --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --body $release_name.msi --acl bucket-owner-full-control ) | ConvertFrom-Json 
+          $put_object_response=( aws s3api put-object --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --body $complete_file_name --acl bucket-owner-full-control ) | ConvertFrom-Json 
           
           echo "put object response"
           echo $put_object_response
@@ -167,7 +168,7 @@ jobs:
           aws s3api wait object-exists --bucket ${{ secrets.AWS_SIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }}-$job_id
           
           # Get signed MSI from S3
-          aws s3api get-object --bucket ${{ secrets.AWS_SIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }}-$job_id $release_name.msi
+          aws s3api get-object --bucket ${{ secrets.AWS_SIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }}-$job_id $complete_file_name
         
       - name: Publish
         uses: softprops/action-gh-release@v1
