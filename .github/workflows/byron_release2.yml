@@ -41,13 +41,14 @@ jobs:
               echo "id:"
               echo $id  
                 
-              if ($id -ne "")
+              if (-not $id)
               {
                   echo "Hit conditional"
                   $job_id = $id
                   break
               }
               Start-Sleep -s 2
+              echo "iterate through loop"
           }
 
           echo $outside_loop_result
