@@ -55,6 +55,13 @@ jobs:
           echo "job_id"
           echo $job_id
 
+          if ($job_id -eq "")
+          {
+             echo "Exiting because unable to retrieve job ID
+             exit 1
+          }
+
+
           
           
           
