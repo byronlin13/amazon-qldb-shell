@@ -34,7 +34,7 @@ jobs:
           for (( i=0; i<$num_of_retries_to_get_job_id; i++ ))
           do  
             # Get job ID
-            id=$( aws s3api get-object-tagging --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key QLDBSignerAuthenticode/AuthenticodeSigner-SHA256-RSA/qldbshell.dll --version-id ${version_id} | jq -r '.TagSet[0].Value2' )
+            id=$( aws s3api get-object-tagging --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key QLDBSignerAuthenticode/AuthenticodeSigner-SHA256-RSA/qldbshell.dll --version-id ${version_id} | jq -r '.TagSet[0].Value' )
             echo "ID"
             echo id
             
