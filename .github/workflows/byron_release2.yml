@@ -1,0 +1,61 @@
+name: Byron2 CI Release
+
+on: workflow_dispatch
+
+jobs:
+  release:
+    name: Release
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            variant: windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
+          role-duration-seconds: 1200
+    
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Byron
+        shell: powershell
+        if: matrix.os == 'windows-latest'
+        run: |                  
+          $job_id = ""
+          $num_of_retries_to_get_job_id = 3
+
+          for (($i = 0); $i -lt $num_of_retries_to_get_job_id; $i++)
+          {
+              $get_object_tagging_response=( aws s3api get-object-tagging --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --version-id 123  ) | ConvertFrom-Json
+              
+              echo "get_object_tagging_response:"
+              echo $get_object_tagging_response
+              
+              $id = $get_object_tagging_response.TagSet[0].Value         
+              echo "id:"
+              echo $id  
+                
+              if ($id -ne "")
+              {
+                  echo "Hit conditional"
+                  $job_id = $id
+                  {break}
+              }
+              Start-Sleep -s 2
+          }
+
+          echo $outside_loop_result
+          echo "job_id"
+          echo $job_id
+
+          
+          
+          
+          
+       
