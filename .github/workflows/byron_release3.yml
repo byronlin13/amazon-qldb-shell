@@ -39,7 +39,7 @@ jobs:
             echo id
             
             
-            if [ $id ]
+            if [ -z $id ]
             then
               echo "met conditional"
               job_id=$id
