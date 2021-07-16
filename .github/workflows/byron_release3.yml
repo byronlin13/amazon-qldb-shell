@@ -51,7 +51,7 @@ jobs:
           done
 
 
-          if [ $job_id = "" ]
+          if [[ $job_id = "" ]]
           then
              echo "Exiting because unable to retrieve job ID"
              exit 1
