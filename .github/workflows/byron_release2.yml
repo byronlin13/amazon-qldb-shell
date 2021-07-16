@@ -57,7 +57,7 @@ jobs:
 
           if ($job_id -eq "")
           {
-             echo "Exiting because unable to retrieve job ID
+             echo "Exiting because unable to retrieve job ID"
              exit 1
           }
 
