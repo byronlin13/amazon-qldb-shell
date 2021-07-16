@@ -41,7 +41,7 @@ jobs:
               echo "id:"
               echo $id  
                 
-              if (-not $id)
+              if ($id)
               {
                   echo "Hit conditional"
                   $job_id = $id
