@@ -32,12 +32,12 @@ jobs:
 
           for (($i = 0); $i -lt $num_of_retries_to_get_job_id; $i++)
           {
-              $get_object_tagging_response=( aws s3api get-object-tagging --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --version-id 123  ) | ConvertFrom-Json
+              $get_object_tagging_response=( aws s3api get-object-tagging --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key QLDBSignerAuthenticode/AuthenticodeSigner-SHA256-RSA/qldbshell.dll --version-id wvl0WuO4VZ06IJnG_9uJOsYOtuKui2u2  ) | ConvertFrom-Json
               
               echo "get_object_tagging_response:"
               echo $get_object_tagging_response
               
-              $id = $get_object_tagging_response.TagSet[0].Value         
+              $id = $get_object_tagging_response.TagSet[0].Value2        
               echo "id:"
               echo $id  
                 
