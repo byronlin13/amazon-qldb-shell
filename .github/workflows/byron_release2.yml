@@ -45,7 +45,7 @@ jobs:
               {
                   echo "Hit conditional"
                   $job_id = $id
-                  {break}
+                  break
               }
               Start-Sleep -s 2
           }
