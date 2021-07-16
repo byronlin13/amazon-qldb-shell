@@ -39,7 +39,7 @@ jobs:
             echo id
             
             
-            if [ -z $id ]
+            if [ $id != "null" ]
             then
               echo "met conditional"
               job_id=$id
@@ -51,7 +51,7 @@ jobs:
           done
 
 
-          if [ $job_id -eq "" ]
+          if [ $job_id = "" ]
           then
              echo "Exiting because unable to retrieve job ID"
              exit 1
