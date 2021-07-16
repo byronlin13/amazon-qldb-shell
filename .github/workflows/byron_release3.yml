@@ -1,0 +1,63 @@
+name: Byron3 CI Release
+
+on: workflow_dispatch
+
+jobs:
+  release:
+    name: Release
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
+          role-duration-seconds: 1200
+    
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Byron
+        shell: bash
+        run: |                  
+          
+          
+          
+          job_id = ""
+          num_of_retries_to_get_job_id = 3
+
+          for (( i=0; i<$num_of_retries_to_get_job_id; i++ ))
+          do  
+            # Get job ID
+            id=$( aws s3api get-object-tagging --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key QLDBSignerAuthenticode/AuthenticodeSigner-SHA256-RSA/qldbshell.dll --version-id ${version_id} | jq -r '.TagSet[0].Value' )
+
+            if [ $id ]
+            then
+              echo "met conditional"
+              job_id = $id
+              break
+            fi
+            
+            echo "iterate through loop"
+
+          done
+
+
+          if [ $job_id -eq "" ]
+          then
+             echo "Exiting because unable to retrieve job ID"
+             exit 1
+          fi
+          
+
+
+          
+          
+          
+          
+       
