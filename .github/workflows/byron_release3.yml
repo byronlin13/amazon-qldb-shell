@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |                  
           
-          version_id="sV3GshDyOo7Y9ge4RiFthvDg2QGGvSCt"
+          version_id="sV3GshDyOo7Y9ge4RiFthvDg2QGGvSCtz"
           
           job_id=""
           num_of_retries_to_get_job_id=3
