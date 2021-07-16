@@ -31,12 +31,45 @@ jobs:
           $complete_filename = $file_name + ".msi"
           # Push unsigned MSI to S3
           $put_object_response=( aws s3api put-object --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --body $complete_filename --acl bucket-owner-full-control ) | ConvertFrom-Json 
-          
-          echo "put object response"
-          echo $put_object_response
-          
           $version_id = $put_object_response.VersionId
+      
+
+          $job_id = ""
+          $num_of_retries_to_get_job_id = 3
           
-          echo "version_id"
-          echo $version_id
+          # Attempt to get Job ID from bucket tagging, will retry up to 3 times before exiting with a failure code.
+          # Will sleep for 5 seconds between retries.
+          for (($i = 0); $i -lt $num_of_retries_to_get_job_id; $i++)
+          {
+              $get_object_tagging_response=( aws s3api get-object-tagging --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }} --version-id $version_id ) | ConvertFrom-Json
+              
+              echo "get_object_tagging_response:"
+              echo $get_object_tagging_response
+              
+              $id = $get_object_tagging_response.TagSet[0].Value       
+              echo "id:"
+              echo $id  
+                
+              if ($id)
+              {
+                  echo "Hit conditional"
+                  $job_id = $id
+                  break
+              }
+              Start-Sleep -s 5
+              echo "iterate through loop"
+          }
+
+          if ($job_id -eq "")
+          {
+             echo "Exiting because unable to retrieve job ID"
+             exit 1
+          }
+          
+          # Poll signed S3 bucket to see if the signed artifact is there
+          aws s3api wait object-exists --bucket ${{ secrets.AWS_SIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }}-$job_id
+          
+          # Get signed MSI from S3
+          aws s3api get-object --bucket ${{ secrets.AWS_SIGNED_BUCKET }} --key ${{ secrets.AWS_KEY }}-$job_id $complete_file_name
+          
           
