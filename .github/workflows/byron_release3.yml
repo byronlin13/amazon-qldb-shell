@@ -35,7 +35,10 @@ jobs:
           do  
             # Get job ID
             id=$( aws s3api get-object-tagging --bucket ${{ secrets.AWS_UNSIGNED_BUCKET }} --key QLDBSignerAuthenticode/AuthenticodeSigner-SHA256-RSA/qldbshell.dll --version-id ${version_id} | jq -r '.TagSet[0].Value' )
-
+            echo "ID"
+            echo id
+            
+            
             if [ $id ]
             then
               echo "met conditional"
